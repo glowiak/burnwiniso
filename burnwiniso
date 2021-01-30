@@ -1,0 +1,131 @@
+#!/bin/sh
+# windows iso downloader and burner
+
+
+# useful vars
+BURNER="$(which dd)"
+CATBURN="$(which cat)"
+FETCH="$(which curl)"
+
+# win isos
+SRC_W7="https://dl.malwat.ch/windows/Windows%207.iso"
+SRC_W7_64="https://dl.malwat.ch/windows/Windows%207%20(x64).iso"
+SRC_W8="https://dl.malwat.ch/windows/Windows%208.1.iso"
+SRC_W8_64="https://dl.malwat.ch/windows/Windows%208.1%20(x64).iso"
+SRC_W10="https://dl.malwat.ch/windows/Windows%2010%202004.iso"
+SRC_W10_64="https://dl.malwat.ch/windows/Windows%2010%202004%20(x64).iso"
+SRC_WVISTA="https://dl.malwat.ch/windows/Windows%20Vista.iso"
+SRC_WVISTA_64="https://dl.malwat.ch/windows/Windows%20Vista%20(x64).iso"
+
+# args
+WINVER="${1}"
+WINARCH="${2}"
+WINDISK="${3}"
+
+# program
+fetchwin() {
+	if [[ "${WINVER}" == "--winver=vista" ]]; then
+		if [[ "${WINARCH}" == "--arch=x86" ]]; then
+			${FETCH} -L -o /tmp/winvista.iso "${SRC_WVISTA}"
+		fi
+		if [[ "${WINARCH}" == "--arch=x64" ]]; then
+			${FETCH} -L -o /tmp/winvista64.iso "${SRC_WVISTA_64}"
+		fi
+	fi
+	if [[ "${WINVER}" == "--winver=7" ]]; then
+		if [[ "${WINARCH}" == "--arch=x86" ]]; then
+			"${FETCH}" -L -o /tmp/win7.iso "${SRC_W7}"
+		fi
+		if [[ "${WINARCH}" == "--arch=x64" ]]; then
+			${FETCH} -L -o /tmp/win764.iso "${SRC_W7_64}"
+		fi
+	fi
+	if [[ "${WINVER}" == "--winver=8" ]]; then
+		if [[ "${WINARCH}" == "--arch=x86" ]]; then
+			${FETCH} -L -o /tmp/win8.iso "${SRC_W8}"
+		fi
+		if [[ "${WINARCH}" == "--arch=x64" ]]; then
+			${FETCH} -L -o /tmp/win864.iso "${SRC_W8_64}"
+		fi
+	fi
+	if [[ "${WINVER}" == "--winver=10" ]]; then
+		if [[ "${WINARCH}" == "--arch=x86" ]]; then
+			${FETCH} -L -o /tmp/win10.iso "${SRC_W10}"
+		fi
+		if [[ "${WINARCH}" == "--arch=x64" ]]; then
+			${FETCH} -L -o /tmp/win1064.iso "${SRC_W10_64}"
+		fi
+	fi
+}
+checkwin() {
+	if [[ "${WINVER}" == "--winver=vista" ]]; then
+		if [[ "${WINARCH}" == "--arch=x86" ]]; then
+			WINPATH="/tmp/winvista.iso"
+		fi
+		if [[ "${WINARCH}" == "--arch=x64" ]]; then
+			WINPATH="/tmp/winvista64.iso"
+		fi
+	fi
+	if [[ "${WINVER}" == "--winver=7" ]]; then
+		if [[ "${WINARCH}" == "--arch=x86" ]]; then
+			WINPATH="/tmp/win7.iso"
+		fi
+		if [[ "${WINARCH}" == "--arch=x64" ]]; then
+			WINPATH="/tmp/win764.iso"
+		fi
+	fi
+	if [[ "${WINVER}" == "--winver=8" ]]; then
+		if [[ "${WINARCH}" == "--arch=x86" ]]; then
+			WINPATH="/tmp/win8.iso"
+		fi
+		if [[ "${WINARCH}" == "--arch=x64" ]]; then
+			WINPATH="/tmp/win864.iso"
+		fi
+	fi
+	if [[ "${WINVER}" == "--winver=10" ]]; then
+		if [[ "${WINARCH}" == "--arch=x86" ]]; then
+			WINPATH="/tmp/win10.iso"
+		fi
+		if [[ "${WINARCH}" == "--arch=x64" ]]; then
+			WINPATH="/tmp/win1064.iso"
+		fi
+	fi
+}
+writewin() {
+	${BURNER} if=${WINPATH} of=${WINDISK} && sync
+}
+delwin() {
+	rm -rf ${WINPATH}
+}
+dhelp() {
+	echo "BurnWinISO - small utility to download and burn windows iso to usb"
+	echo "Usage: ./burnwiniso --winver=winversion --arch=architecture /dev/device"
+	echo "Supported architectures: x86,x64"
+	echo "Supported windowses list:"
+	echo "vista	-	windows vista"
+	echo "7	-	windows 7"
+	echo "8	-	windows 8"
+	echo "10	-	windows 10"
+}
+if [[ "${1}" == "--help" ]]; then
+	dhelp
+	exit
+fi
+echo "BurnWinISO v1.0 - simple app to burn windows to usb"
+echo "###################################################"
+echo "Fetching ISO..."
+fetchwin
+echo "Checking winver..."
+checkwin
+echo -n "Checking device..."
+echo "found ${WINDISK}"
+echo -n "Write windows to ${WINDISK}? This will erase this device! [y/n] "
+read q1
+if [[ "${q1}" == "y" ]]; then
+	echo "writing to ${WINDISK}..."
+	writewin
+	echo "Writing complete; deleting iso..."
+	delwin
+	echo "Completed!"
+fi
+delwin

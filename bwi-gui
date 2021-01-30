@@ -1,0 +1,66 @@
+#!/bin/sh
+
+# useful vars
+DIALOG_PATH="$(which zenity)"
+
+set_winver() {
+	WQUERY=$($DIALOG_PATH --list --title "burnwiniso v1.0" --text "Select which win ver you want" --column="Supported wins:" Vista 7 8 10)
+}
+set_win() {
+	if [[ "${WQUERY}" == "Vista" ]]; then
+		WIN_INSTALL=vista
+	fi
+	if [[ "${WQUERY}" == "7" ]]; then
+		WIN_INSTALL=7
+	fi
+	if [[ "${WQUERY}" == "8" ]]; then
+		WIN_INSTALL=8
+	fi
+	if [[ "${WQUERY}" == "10" ]]; then
+		WIN_INSTALL=10
+	fi
+}
+ask_arch() {
+	AQUERY=$($DIALOG_PATH --list --title "burnwiniso v1.0" --text "Select architecture" --column="Supported arches:" x64 x86)
+}
+set_arch() {
+	ARCH_INSTALL=$AQUERY
+}
+ask_device() {
+	DEVLIST=$(ls /dev/)
+	DQUERY=$($DIALOG_PATH --list --title "burnwiniso v1.0" --text "Select device" --column="Devices:" ${DEVLIST})
+}
+set_device() {
+	DEVICE_INSTALL=$DQUERY
+	echo $DEVICE_INSTALL
+}
+ask_st() {
+	ST_QUERY=$($DIALOG_PATH --list --title "burnwiniso v1.0" --text "Show terminal?" --column="" Yes No)
+	if [[ "${ST_QUERY}" == "Yes" ]]; then
+		SHOW_TERMINAL=TRUE
+	fi
+	if [[ "${ST_QUERY}" == "No" ]]; then
+		SHOW_TERMINAL=FALSE
+	fi
+}
+confirm() {
+	CNFIRM=$($DIALOG_PATH --entry --title "burnwiniso v1.0" --text "Type 'destroyusb' to confirm")
+}
+set_winver
+set_win
+ask_arch
+set_arch
+ask_device
+set_device
+ask_st
+confirm
+if [[ "${CNFIRM}" == "destroyusb" ]]; then
+	if [[ "${SHOW_TERMINAL}" == "TRUE" ]]; then
+		$(which xterm) -e 'sh $(pwd)/burnwiniso --winver=$WIN_INSTALL --arch=$ARCH_INSTALL $DEVICE_INSTALL'
+		zenity --info --title "burnwiniso v1.0" --text "Completed!"
+	fi
+	if [[ "${SHOW_TERMINAL}" == "FALSE" ]]; then
+		sh $(pwd)/burnwiniso --winver=$WIN_INSTALL --arch=$ARCH_INSTALL $DEVICE_INSTALL
+		zenity --info --title "burnwiniso v1.0" --text "Completed!"
+	fi
+fi
